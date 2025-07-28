@@ -33,7 +33,9 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['./test/specs/**/*.e2e.js'],
+  // specs: ['./test/specs/**/*.e2e.js'],
+  specs: ['./test/features/**/*.feature'],
+
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'
@@ -117,7 +119,7 @@ export const config = {
   // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
   // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
   // gets prepended directly.
-  baseUrl: 'http://localhost:3000',
+  baseUrl: 'https://apha-sdo-frontend.dev.cdp-int.defra.cloud/',
   //
   // Default timeout for all waitFor* commands.
   waitforTimeout: 10000,
@@ -142,7 +144,7 @@ export const config = {
   //
   // Make sure you have the wdio adapter package for the specific framework installed
   // before running any tests.
-  framework: 'mocha',
+  framework: 'cucumber',
   //
   // The number of times to retry the entire specfile when it fails as a whole
   // specFileRetries: 1,
@@ -162,17 +164,61 @@ export const config = {
     [
       'allure',
       {
-        outputDir: 'allure-results'
+        outputDir: 'allure-results',
+        useCucumberStepReporter: true
       }
     ]
   ],
 
+  cucumberOpts: {
+    require: ['./test/steps/*.js'],
+    backtrace: false,
+    requireModule: [],
+    dryRun: false,
+    failFast: false,
+    name: [],
+    snippets: true,
+    source: true,
+    strict: false,
+    tagExpression: '',
+    timeout: 180000,
+    ignoreUndefinedDefinitions: false
+  },
+  afterStep: async function (step, scenario, result) {
+    await browser.takeScreenshot()
+    // if (result.error) {
+    //   await browser.takeScreenshot()
+    // }
+  },
+  onComplete: function (exitCode, config, capabilities, results) {
+    const reportError = new Error('Could not generate Allure report')
+    const generation = allure(['generate', 'allure-results', '--clean'])
+
+    return new Promise((resolve, reject) => {
+      const generationTimeout = setTimeout(() => reject(reportError), oneMinute)
+
+      generation.on('exit', function (exitCode) {
+        clearTimeout(generationTimeout)
+
+        if (exitCode !== 0) {
+          return reject(reportError)
+        }
+
+        allure(['open'])
+        resolve()
+      })
+    })
+  },
+  afterScenario: async function (world, result, context) {
+    await browser.reloadSession()
+  }
+
   // Options to be passed to Mocha.
   // See the full list at http://mochajs.org/
-  mochaOpts: {
-    ui: 'bdd',
-    timeout: debug ? oneHour : 60000
-  },
+  // mochaOpts: {
+  //   ui: 'bdd',
+  //   timeout: debug ? oneHour : 60000
+  // },
   //
   // =====
   // Hooks
@@ -261,19 +307,19 @@ export const config = {
    * @param {boolean} result.passed    true if test has passed, otherwise false
    * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
    */
-  afterTest: async function (
-    test,
-    context,
-    { error, result, duration, passed, retries }
-  ) {
-    await browser.takeScreenshot()
+  // afterTest: async function (
+  //   test,
+  //   context,
+  //   { error, result, duration, passed, retries }
+  // ) {
+  //   await browser.takeScreenshot()
 
-    if (error) {
-      browser.executeScript(
-        'browserstack_executor: {"action": "setSessionStatus", "arguments": {"status":"failed","reason": "At least 1 assertion failed"}}'
-      )
-    }
-  },
+  //   if (error) {
+  //     browser.executeScript(
+  //       'browserstack_executor: {"action": "setSessionStatus", "arguments": {"status":"failed","reason": "At least 1 assertion failed"}}'
+  //     )
+  //   }
+  // },
 
   /**
    * Hook that gets executed after the suite has ended
@@ -311,25 +357,25 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {<Object>} results object containing test results
    */
-  onComplete: function (exitCode, config, capabilities, results) {
-    const reportError = new Error('Could not generate Allure report')
-    const generation = allure(['generate', 'allure-results', '--clean'])
+  // onComplete: function (exitCode, config, capabilities, results) {
+  //   const reportError = new Error('Could not generate Allure report')
+  //   const generation = allure(['generate', 'allure-results', '--clean'])
 
-    return new Promise((resolve, reject) => {
-      const generationTimeout = setTimeout(() => reject(reportError), oneMinute)
+  //   return new Promise((resolve, reject) => {
+  //     const generationTimeout = setTimeout(() => reject(reportError), oneMinute)
 
-      generation.on('exit', function (exitCode) {
-        clearTimeout(generationTimeout)
+  //     generation.on('exit', function (exitCode) {
+  //       clearTimeout(generationTimeout)
 
-        if (exitCode !== 0) {
-          return reject(reportError)
-        }
+  //       if (exitCode !== 0) {
+  //         return reject(reportError)
+  //       }
 
-        allure(['open'])
-        resolve()
-      })
-    })
-  }
+  //       allure(['open'])
+  //       resolve()
+  //     })
+  //   })
+  // }
 
   /**
    * Gets executed when a refresh happens.

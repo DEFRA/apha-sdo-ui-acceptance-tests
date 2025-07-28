@@ -40,6 +40,8 @@
     "@wdio/junit-reporter": "9.9.0",
     "@wdio/mocha-framework": "9.9.0",
     "@wdio/spec-reporter": "9.9.0",
+    "@cucumber/cucumber": "11.3.0",
+    "@wdio/cucumber-framework": "9.10.1",
     "allure-commandline": "2.32.0",
     "esm-module-alias": "2.2.1",
     "global-agent": "3.0.0",
