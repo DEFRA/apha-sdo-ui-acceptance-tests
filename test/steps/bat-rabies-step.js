@@ -1,7 +1,7 @@
 import { Given, Then, When } from '@wdio/cucumber-framework'
 import HomePage from '../page-objects/home.page'
 import BatRabiesPage from '../page-objects/bat-rabies.page'
-import { getCurrentMonth, getMonthName } from '../utils/date-utils'
+import { getMonthName } from '../utils/date-utils'
 import { browser, expect } from '~/node_modules/@wdio/globals/build/index'
 
 Given('the User access APHA SDO portal', async () => {

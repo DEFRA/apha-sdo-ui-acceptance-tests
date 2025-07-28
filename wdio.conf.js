@@ -1,7 +1,5 @@
 import fs from 'node:fs'
 
-const oneMinute = 60 * 1000
-
 export const config = {
   //
   // ====================
@@ -258,7 +256,7 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {<Object>} results object containing test results
    */
- onComplete: function (exitCode, config, capabilities, results) {
+  onComplete: function (exitCode, config, capabilities, results) {
     // !Do Not Remove! Required for test status to show correctly in portal.
     if (results?.failed && results.failed > 0) {
       fs.writeFileSync('FAILED', JSON.stringify(results))
