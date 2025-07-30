@@ -31,7 +31,6 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  // specs: ['./test/specs/**/*.e2e.js'],
   specs: ['./test/features/**/*.feature'],
 
   // Patterns to exclude.
@@ -117,7 +116,8 @@ export const config = {
   // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
   // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
   // gets prepended directly.
-  baseUrl: 'https://apha-sdo-frontend.dev.cdp-int.defra.cloud/',
+  baseUrl: `https://apha-sdo-frontend.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
+
   //
   // Default timeout for all waitFor* commands.
   waitforTimeout: 10000,

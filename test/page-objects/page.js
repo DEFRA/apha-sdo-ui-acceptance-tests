@@ -16,6 +16,12 @@ class Page {
     await button.click()
   }
 
+  async click_href_by_text(text) {
+    const button = await $(`a=${text}`)
+    await button.waitForClickable({ timeout: config.waitforTimeout })
+    await button.click()
+  }
+
   async is_link_present(linkText) {
     const link = await $(`//a[contains(.,"${linkText}")]`)
     return await link.isDisplayed()

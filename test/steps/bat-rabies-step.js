@@ -12,18 +12,26 @@ Given('the User access APHA SDO portal', async () => {
   const aphaDashboard = await HomePage.is_link_present(`APHA's dashboards`)
   await expect(aphaDashboard).toBe(true)
 
-  await expect(browser).toHaveTitle('Home | APHA SDO')
+  await expect(browser).toHaveTitle(
+    'Home | APHA Surveillance data submission portal'
+  )
 })
 
 Given('the User login to SDO', async () => {
-  await HomePage.sign_in_SDO_portal()
-  await expect(browser).toHaveTitle('Sign In | APHA SDO')
+  await HomePage.click_href_by_text(
+    'Continue to Surveillance data submission portal'
+  )
+  await expect(browser).toHaveTitle(
+    'Sign In | APHA Surveillance data submission portal'
+  )
 })
 
 When('the User sign in with Defra ID', async () => {
   await expect(browser).toHaveUrl(expect.stringContaining('oidc-signin'))
-  await HomePage.sign_in_with_DefraId()
-  await expect(browser).toHaveTitle('Submission Portal | APHA SDO')
+  await HomePage.click_href_by_text('Sign in with DEFRA ID')
+  await expect(browser).toHaveTitle(
+    'Submission Portal | APHA Surveillance data submission portal'
+  )
 })
 
 Then('the User selects Bat Rabies Surveillance Report', async () => {
@@ -31,30 +39,38 @@ Then('the User selects Bat Rabies Surveillance Report', async () => {
   const contactLink = await HomePage.is_link('Contact')
   await expect(contactLink).toBeDisplayed()
   await HomePage.click_bat_rabies_service()
-  await expect(browser).toHaveTitle('Sample details | APHA SDO')
+  await expect(browser).toHaveTitle(
+    'Bat Rabies Submission Form | APHA Surveillance data submission portal'
+  )
 })
 
-When('the User inputs the receipt date of sample collection', async () => {
+When('the User inputs the report date of sample collection', async () => {
   await expect(browser).toHaveUrl(expect.stringContaining('sample-details'))
-  await BatRabiesPage.enter_receipt_date()
-  await expect(browser).toHaveTitle('Upload documentation | APHA SDO')
+  await BatRabiesPage.enter_report_date()
+  await expect(browser).toHaveTitle(
+    'Bat Rabies Submission Form | APHA Surveillance data submission portal'
+  )
 })
 
 When('the User upload the Surveillance sample collection file', async () => {
   await expect(browser).toHaveUrl(expect.stringContaining('file-upload'))
   await BatRabiesPage.click_button_by_text('Continue')
-  await expect(browser).toHaveTitle('Check your answers | APHA SDO')
+  await expect(browser).toHaveTitle(
+    'Check your answers | APHA Surveillance data submission portal'
+  )
 })
 
 Then('application displays the screen to check given information', async () => {
-  const receiptDate = await BatRabiesPage.get_receipt_date()
+  const reportDate = await BatRabiesPage.get_report_date()
   const month = getMonthName()
-  await expect(receiptDate).toHaveText(expect.stringContaining(month))
+  await expect(reportDate).toHaveText(expect.stringContaining(month))
 })
 When('the User confirms the information', async () => {
   await expect(browser).toHaveUrl(expect.stringContaining('summary'))
   await BatRabiesPage.click_button_by_text('Send')
-  await expect(browser).toHaveTitle('Form submitted | APHA SDO')
+  await expect(browser).toHaveTitle(
+    'Form submitted | APHA Surveillance data submission portal'
+  )
 })
 
 Then('{string} banner should display', async (bannerTitle) => {
@@ -66,7 +82,6 @@ Then('{string} banner should display', async (bannerTitle) => {
 When('the User cicks Contact link', async () => {
   const contactLink = await HomePage.is_link('Contact')
   contactLink.click()
-  await expect(browser).toHaveUrl(expect.stringContaining('contact'))
 })
 
 When('the User cicks APHA Dashboard link', async () => {
@@ -75,23 +90,22 @@ When('the User cicks APHA Dashboard link', async () => {
 })
 
 Then('application should redirects to contact screen', async () => {
-  const contactLink = await HomePage.is_link('Access SDO portal')
-  await expect(contactLink).toBeDisplayed()
+  await expect(browser).toHaveUrl(expect.stringContaining('contact'))
 })
 
-When('the User decides to change receipt year as {string}', async (year) => {
-  await BatRabiesPage.click_receipt_date_change()
+When('the User decides to change report year as {string}', async (year) => {
+  await BatRabiesPage.click_report_date_change()
   await expect(browser).toHaveUrl(
     expect.stringContaining('sample-details?returnUrl=%2Fbat-rabies%2Fsummary')
   )
-  await BatRabiesPage.enter_receipt_date(year)
+  await BatRabiesPage.enter_report_date(year)
 })
 
 Then(
   'application displays the screen with updated year as {string}',
   async (year) => {
-    const receiptDate = await BatRabiesPage.get_receipt_date()
-    await expect(receiptDate).toHaveText(expect.stringContaining(year))
+    const reportDate = await BatRabiesPage.get_report_date()
+    await expect(reportDate).toHaveText(expect.stringContaining(year))
   }
 )
 
