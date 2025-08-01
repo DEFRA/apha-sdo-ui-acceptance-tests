@@ -1,7 +1,5 @@
 import fs from 'node:fs'
 
-const oneMinute = 60 * 1000
-
 export const config = {
   //
   // ====================
@@ -14,14 +12,16 @@ export const config = {
   // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
   // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
   // gets prepended directly.
-  baseUrl: `https://apha-sdo-ui-acceptance-tests.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
+  baseUrl: `https://apha-sdo-frontend.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
 
   // Connection to remote chromedriver
-  hostname: process.env.CHROMEDRIVER_URL || '127.0.0.1',
-  port: process.env.CHROMEDRIVER_PORT || 4444,
+  // hostname: process.env.CHROMEDRIVER_URL || '127.0.0.1',
+  // port: process.env.CHROMEDRIVER_PORT || 4444,
 
   // Tests to run
-  specs: ['./test/specs/**/*.js'],
+  // specs: ['./test/specs/**/*.js'],
+  specs: ['./test/features/**/*.feature'],
+
   // Tests to exclude
   exclude: [],
   maxInstances: 1,
@@ -70,15 +70,15 @@ export const config = {
   waitforInterval: 200,
   connectionRetryTimeout: 6000,
   connectionRetryCount: 3,
-  framework: 'mocha',
+  framework: 'cucumber',
 
   reporters: [
     [
       // Spec reporter provides rolling output to the logger so you can see it in-progress
       'spec',
       {
-        addConsoleLogs: true,
-        realtimeReporting: true,
+        addConsoleLogs: false,
+        realtimeReporting: false,
         color: false
       }
     ],
@@ -86,17 +86,42 @@ export const config = {
       // Allure is used to generate the final HTML report
       'allure',
       {
-        outputDir: 'allure-results'
+        outputDir: 'allure-results',
+        useCucumberStepReporter: true
       }
     ]
   ],
 
+  cucumberOpts: {
+    require: ['./test/steps/*.js'],
+    backtrace: false,
+    requireModule: [],
+    dryRun: false,
+    failFast: false,
+    name: [],
+    snippets: true,
+    source: true,
+    strict: false,
+    tagExpression: 'not @wip',
+    timeout: 180000,
+    ignoreUndefinedDefinitions: false
+  },
+
+  afterStep: async function (step, scenario, result) {
+    if (result.error) {
+      await browser.takeScreenshot()
+    }
+  },
+
+  afterScenario: async function (world, result, context) {
+    await browser.reloadSession()
+  },
   // Options to be passed to Mocha.
   // See the full list at http://mochajs.org/
-  mochaOpts: {
-    ui: 'bdd',
-    timeout: oneMinute
-  },
+  // mochaOpts: {
+  //   ui: 'bdd',
+  //   timeout: oneMinute
+  // }
   //
   // =====
   // Hooks
@@ -185,15 +210,15 @@ export const config = {
    * @param {boolean} result.passed    true if test has passed, otherwise false
    * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
    */
-  afterTest: async function (
-    test,
-    context,
-    { error, result, duration, passed, retries }
-  ) {
-    if (error) {
-      await browser.takeScreenshot()
-    }
-  },
+  // afterTest: async function (
+  //   test,
+  //   context,
+  //   { error, result, duration, passed, retries }
+  // ) {
+  //   if (error) {
+  //     await browser.takeScreenshot()
+  //   }
+  // }
 
   /**
    * Hook that gets executed after the suite has ended
