@@ -1,7 +1,7 @@
-Feature: SDO Journey
+Feature: SDO Bat Rabies Journey
 
     Validate Bat Rabies Journey
-@accessibility
+
 Scenario: Bat Rabies valid journey
     Given the User access APHA SDO portal
     And the User login to SDO
