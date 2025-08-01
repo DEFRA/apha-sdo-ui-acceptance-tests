@@ -76,8 +76,6 @@ export function integrateAccessibilityPlugin() {
  * Main function to handle all accessibility integration after Allure report generation
  */
 export function integrateAccessibilityWithAllure() {
-  try {
-    copyAccessibilityReportsToAllure()
-    integrateAccessibilityPlugin()
-  } catch (error) {}
+  copyAccessibilityReportsToAllure()
+  integrateAccessibilityPlugin()
 }
