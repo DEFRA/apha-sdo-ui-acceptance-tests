@@ -41,6 +41,9 @@ export const config = {
   },
   bail: 1,
   baseUrl: `https://apha-sdo-frontend.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
+  // Connection to remote chromedriver
+  hostname: process.env.CHROMEDRIVER_URL || '127.0.0.1',
+  port: process.env.CHROMEDRIVER_PORT || 4444,
   waitforTimeout: 10000,
   waitforInterval: 200,
   connectionRetryTimeout: 120000,
