@@ -1,4 +1,5 @@
 import allure from 'allure-commandline'
+import { integrateAccessibilityWithAllure } from './allure-accessibility-plugin/allure-accessibility-integration.js'
 
 const oneMinute = 60 * 1000
 
@@ -14,14 +15,15 @@ export const config = {
   // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
   // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
   // gets prepended directly.
-  baseUrl: `http://localhost:3000`,
+  baseUrl: `https://apha-sdo-frontend.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
 
   // Connection to remote chromedriver
   hostname: process.env.CHROMEDRIVER_URL || '127.0.0.1',
   port: process.env.CHROMEDRIVER_PORT || 4444,
 
   // Tests to run
-  specs: ['./test/specs/**/*.js'],
+  // specs: ['./test/specs/**/*.js'],
+  specs: ['./test/features/**/*.feature'],
   // Tests to exclude
   exclude: [],
   maxInstances: 1,
@@ -80,17 +82,60 @@ export const config = {
       // Allure is used to generate the final HTML report
       'allure',
       {
-        outputDir: 'allure-results'
+        outputDir: 'allure-results',
+        useCucumberStepReporter: true
       }
     ]
   ],
 
   // Options to be passed to Mocha.
   // See the full list at http://mochajs.org/
-  mochaOpts: {
-    ui: 'bdd',
-    timeout: oneMinute
+  // mochaOpts: {
+  //   ui: 'bdd',
+  //   timeout: oneMinute
+  // },
+  cucumberOpts: {
+    require: ['./test/steps/*.js'],
+    backtrace: false,
+    requireModule: [],
+    dryRun: false,
+    failFast: false,
+    name: [],
+    snippets: true,
+    source: true,
+    strict: false,
+    tagExpression: '',
+    timeout: 180000,
+    ignoreUndefinedDefinitions: false
   },
+  afterStep: async function (step, scenario, result) {
+    await browser.takeScreenshot()
+    // if (result.error) {
+    //   await browser.takeScreenshot()
+    // }
+  },
+  onComplete: function (exitCode, config, capabilities, results) {
+    const reportError = new Error('Could not generate Allure report')
+    const generation = allure(['generate', 'allure-results', '--clean'])
+
+    return new Promise((resolve, reject) => {
+      const generationTimeout = setTimeout(() => reject(reportError), oneMinute)
+
+      generation.on('exit', function (exitCode) {
+        clearTimeout(generationTimeout)
+        if (exitCode !== 0) {
+          return reject(reportError)
+        }
+
+        allure(['open'])
+        resolve()
+        integrateAccessibilityWithAllure()
+      })
+    })
+  },
+  afterScenario: async function (world, result, context) {
+    await browser.reloadSession()
+  }
   //
   // =====
   // Hooks
@@ -179,15 +224,15 @@ export const config = {
    * @param {boolean} result.passed    true if test has passed, otherwise false
    * @param {object}  result.retries   information about spec related retries, e.g. `{ attempts: 0, limit: 0 }`
    */
-  afterTest: async function (
-    test,
-    context,
-    { error, result, duration, passed, retries }
-  ) {
-    if (error) {
-      await browser.takeScreenshot()
-    }
-  },
+  // afterTest: async function (
+  //   test,
+  //   context,
+  //   { error, result, duration, passed, retries }
+  // ) {
+  //   if (error) {
+  //     await browser.takeScreenshot()
+  //   }
+  // },
 
   /**
    * Hook that gets executed after the suite has ended
@@ -225,29 +270,30 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {<Object>} results object containing test results
    */
-  onComplete: function (exitCode, config, capabilities, results) {
-    if (results?.failed && results.failed > 0) {
-      const reportError = new Error('Could not generate Allure report')
-      const generation = allure(['generate', 'allure-results', '--clean'])
+  // onComplete: function (exitCode, config, capabilities, results) {
+  //   if (results?.failed && results.failed > 0) {
+  //     const reportError = new Error('Could not generate Allure report')
+  //     const generation = allure(['generate', 'allure-results', '--clean'])
 
-      return new Promise((resolve, reject) => {
-        const generationTimeout = setTimeout(
-          () => reject(reportError),
-          oneMinute
-        )
+  //     return new Promise((resolve, reject) => {
+  //       const generationTimeout = setTimeout(
+  //         () => reject(reportError),
+  //         oneMinute
+  //       )
 
-        generation.on('exit', function (exitCode) {
-          clearTimeout(generationTimeout)
+  //       generation.on('exit', function (exitCode) {
+  //         clearTimeout(generationTimeout)
 
-          if (exitCode !== 0) {
-            return reject(reportError)
-          }
+  //         if (exitCode !== 0) {
+  //           return reject(reportError)
+  //         }
 
-          resolve()
-        })
-      })
-    }
-  }
+  //         resolve()
+  //         integrateAccessibilityWithAllure()
+  //       })
+  //     })
+  //   }
+  // }
   /**
    * Gets executed when a refresh happens.
    * @param {string} oldSessionId session ID of the old session
