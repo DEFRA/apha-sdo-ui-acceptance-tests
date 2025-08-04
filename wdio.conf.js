@@ -58,7 +58,7 @@ export const config = {
 
   execArgv: ['--loader', 'esm-module-alias/loader'],
 
-  logLevel: 'info',
+  logLevel: 'error',
 
   logLevels: {
     webdriver: 'error'

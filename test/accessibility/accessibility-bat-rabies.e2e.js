@@ -3,7 +3,7 @@ import {
   analyseAccessibility,
   generateAccessibilityReports,
   generateAccessibilityReportIndex
-} from '../accessibility/accessibility-checking.js'
+} from '../utils/accessibility-checking.js'
 import HomePage from 'page-objects/home.page'
 import BatRabiesPage from '../page-objects/bat-rabies.page'
 
