@@ -33,11 +33,9 @@ Scenario: Redirect APHA's Dashboard
      Given the User access APHA SDO portal
      When the User cicks APHA Dashboard link
      Then application shoudl redirects to Dashboard screen
-
-@accessibility  
+  
 Scenario: Accessibility Testing - check APHA SDO Frontend Journey
     Given check APHA SDO Frontend for accessiblity issues    
 
-@accessibility  
 Scenario: Accessibility Testing - check APHA SDO Frontend Contact screen
     Given check APHD SDO Contact screen for accessiblity issues

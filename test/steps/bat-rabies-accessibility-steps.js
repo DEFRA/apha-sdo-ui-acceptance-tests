@@ -9,11 +9,11 @@ import {
   generateAccessibilityReportIndex
 } from '../utils/accessibility-checking.js'
 
-BeforeAll({ tags: '@accessibility' }, async function () {
+BeforeAll(async function () {
   await initialiseAccessibilityChecking()
 })
 
-AfterAll({ tags: '@accessibility' }, async function () {
+AfterAll(async function () {
   generateAccessibilityReports('APHA SDO')
   generateAccessibilityReportIndex()
 })
