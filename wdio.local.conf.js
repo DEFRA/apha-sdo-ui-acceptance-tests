@@ -1,5 +1,4 @@
 import allure from 'allure-commandline'
-import { integrateAccessibilityWithAllure } from './allure-accessibility-plugin/allure-accessibility-integration.js'
 
 const debug = process.env.DEBUG
 const oneMinute = 60 * 1000
@@ -205,7 +204,6 @@ export const config = {
 
         allure(['open'])
         resolve()
-        integrateAccessibilityWithAllure()
       })
     })
   },
