@@ -179,6 +179,19 @@ You can check the progress of the build under the actions section of this reposi
 
 The results of the test run are made available in the portal.
 
+For a CDP Portal run of the TEST-environment scenarios, configure these
+environment variables on the CDP Test Suite:
+
+- `BASE_URL`: `https://apha-sdo-system.test.cdp-int.defra.cloud`
+- `CUCUMBER_TAG_EXPRESSION`: `@test`
+- `TEST_ENTRA_USERNAME`: the TEST account username
+- `TEST_ENTRA_PASSWORD`: the TEST account password, stored as a secret
+
+The credentials in a local `.env` file are not copied into the CDP container.
+Add the same TEST account values to the CDP Test Suite configuration instead;
+do not commit credentials to the repository. Without these overrides, the
+default `npm test` configuration and tag filter are unchanged.
+
 ## Requirements of CDP Environment Tests
 
 1. Your service builds as a docker container using the `.github/workflows/publish.yml`
