@@ -1,8 +1,26 @@
 import allure from 'allure-commandline'
+import {
+  addAttachment,
+  addParentSuite,
+  addSubSuite,
+  addStory
+} from '@wdio/allure-reporter'
+import { basename } from 'node:path'
 
 const debug = process.env.DEBUG
+const stepDelayMs = Number(process.env.STEP_DELAY_MS ?? 1000)
 const oneMinute = 60 * 1000
 const execArgv = ['--loader', 'esm-module-alias/loader']
+let screenshotSequence = 0
+let scenarioName = ''
+let isBatRabiesFeature = false
+const chromeArgs = [
+  '--no-sandbox',
+  '--disable-infobars',
+  '--disable-gpu',
+  '--window-size=1920,1080',
+  '--force-device-scale-factor=1'
+]
 
 if (debug) {
   execArgv.push('--inspect')
@@ -61,22 +79,15 @@ export const config = {
   // https://saucelabs.com/platform/platform-configurator
   //
 
-  capabilities: debug
-    ? [{ browserName: 'chrome' }]
-    : [
-        {
-          maxInstances: 1,
-          browserName: 'chrome',
-          'goog:chromeOptions': {
-            args: [
-              '--no-sandbox',
-              '--disable-infobars',
-              '--disable-gpu',
-              '--window-size=1920,1080'
-            ]
-          }
-        }
-      ],
+  capabilities: [
+    {
+      maxInstances: 1,
+      browserName: 'chrome',
+      'goog:chromeOptions': {
+        args: chromeArgs
+      }
+    }
+  ],
 
   execArgv,
 
@@ -116,7 +127,7 @@ export const config = {
   // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
   // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
   // gets prepended directly.
-  baseUrl: `https://apha-sdo-frontend.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
+  baseUrl: process.env.BASE_URL || 'http://localhost:3000',
 
   //
   // Default timeout for all waitFor* commands.
@@ -163,7 +174,8 @@ export const config = {
       'allure',
       {
         outputDir: 'allure-results',
-        useCucumberStepReporter: true
+        useCucumberStepReporter: true,
+        disableWebdriverScreenshotsReporting: true
       }
     ]
   ],
@@ -178,15 +190,32 @@ export const config = {
     snippets: true,
     source: true,
     strict: false,
-    tagExpression: '',
+    tagExpression:
+      process.env.CUCUMBER_TAG_EXPRESSION || 'not @dev and not @test',
     timeout: 180000,
     ignoreUndefinedDefinitions: false
   },
-  afterStep: async function (step, scenario, result) {
-    await browser.takeScreenshot()
-    // if (result.error) {
-    //   await browser.takeScreenshot()
-    // }
+  beforeScenario: function (world) {
+    screenshotSequence = 0
+    scenarioName = world.pickle.name
+    isBatRabiesFeature = basename(world.pickle.uri).startsWith('sdo-bat-rabies')
+    addParentSuite(basename(world.pickle.uri))
+    addSubSuite(scenarioName)
+    addStory(scenarioName)
+  },
+  afterStep: async function (step) {
+    const screenshot = await browser.takeScreenshot()
+    screenshotSequence += 1
+
+    addAttachment(
+      `${scenarioName} - ${String(screenshotSequence).padStart(2, '0')} - ${step.text}`,
+      Buffer.from(screenshot, 'base64'),
+      'image/png'
+    )
+
+    if (isBatRabiesFeature && stepDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, stepDelayMs))
+    }
   },
   onComplete: function (exitCode, config, capabilities, results) {
     const reportError = new Error('Could not generate Allure report')

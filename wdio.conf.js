@@ -102,7 +102,7 @@ export const config = {
     snippets: true,
     source: true,
     strict: false,
-    tagExpression: 'not @wip',
+    tagExpression: 'not @wip and not @dev and not @test',
     timeout: 180000,
     ignoreUndefinedDefinitions: false
   },
