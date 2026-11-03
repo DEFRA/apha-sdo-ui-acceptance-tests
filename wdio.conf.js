@@ -18,8 +18,8 @@ export const config = {
   // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
   // gets prepended directly.
   baseUrl:
-    process.env.BASE_URL ||
     cdpSystemUrl ||
+    process.env.BASE_URL ||
     `https://apha-sdo-frontend.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
 
   // Connection to remote chromedriver
