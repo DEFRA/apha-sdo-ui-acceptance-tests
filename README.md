@@ -38,10 +38,130 @@ npm install
 
 ### Running local tests
 
-Start application you are testing on the url specified in `baseUrl` [wdio.local.conf.js](wdio.local.conf.js)
+The local WDIO configuration targets `http://localhost:3000` by default. To test
+internal sign-in against APHA SDO's local Entra/OIDC stub, start the SDO app and
+its stub first. Follow the [local setup in apha-sdo-system](../apha-sdo-system/apha-sdo-system/README.md#run-it-locally);
+that starts the OIDC stub on port `5556` and the app on port `3000`.
+
+In a terminal opened in `apha-sdo-system/apha-sdo-system`, run:
+
+```bash
+npm run docker:up
+npm run dev
+```
+
+Keep that terminal running. In a second terminal opened in
+`apha-sdo-ui-acceptance-tests`, run:
 
 ```bash
 npm run test:local
+```
+
+The sign-in journey chooses **Defra Single Sign-on** and follows the OIDC
+authorization-code flow through the stub. The stub's default user has the
+Bat Rabies role needed by the acceptance journey. Set `BASE_URL` to target a
+different running app URL; that app must be configured to use the same OIDC
+stub if the test is expected to authenticate without a real Entra tenant.
+
+The local run generates an Allure report in `allure-report`. In the report's
+Suites view, results are grouped under their feature filename and then by
+scenario. Open a scenario to see its Cucumber steps and their screenshot
+attachments, numbered in execution order and prefixed with the scenario name.
+
+### Running the Bat Rabies DEV submission
+
+The DEV-only feature includes the Bat Rabies home-page links, authenticated
+journey, file-management, navigation, and validation scenarios. Its valid
+journey uploads the June 2025 fixture and submits a report to DEV. The
+reporting-period validation scenario still uses the May fixture to verify that
+changing the period to June rejects an old-period file. Run the feature only
+when you intend to create a real test submission. It is tagged `@dev` and
+excluded from normal feature-suite runs.
+
+The DEV runner keeps one browser session for the feature and returns to the
+DEV homepage between scenarios, so Microsoft sign-in is performed once per run.
+The unauthenticated sign-in validation scenario runs before that login.
+
+From Git Bash in this repository, run only that feature. The runner defaults to the
+`SDO.test1@defradev.onmicrosoft.com` account and prompts for its password
+without showing what you type:
+
+```bash
+npm run test:local:dev
+```
+
+To run only one scenario, pass its exact scenario name after `--`. For example:
+
+```bash
+npm run test:local:dev -- "DEV changing the reporting period rejects a file named for the old period"
+```
+
+Alternatively, add the current test-account credentials to a local `.env` file.
+It is ignored by Git. Quote the password in single quotes so shell characters
+are treated literally:
+
+```bash
+DEV_ENTRA_USERNAME='SDO.test1@defradev.onmicrosoft.com'
+DEV_ENTRA_PASSWORD='your-current-password'
+```
+
+The runner reads `.env` automatically, or prompts for the password without
+echoing it when the password is blank. The dedicated command fixes the target to
+`https://apha-sdo-system.dev.cdp-int.defra.cloud` and runs only
+`test/features/dev/sdo-bat-rabies-dev.feature`. If a different DEV account is needed, set
+`DEV_ENTRA_USERNAME` before running. The runner clears the credential variables
+when it exits. Do not run this feature against production.
+
+### Running the AHR DEV journeys
+
+The AHR DEV feature mirrors the AHR upload, web-form, diagnostic-test, and
+validation scenarios. Its upload and web-form happy paths submit real reports
+to DEV. When the account is awaiting diagnostic-test setup, the runner completes
+the laboratory details and diagnostic-test setup first. This submits a diagnostic
+test configuration and updates the DEV lab profile. Run only when you intend to
+create these submissions:
+
+```bash
+npm run test:local:dev:ahr
+```
+
+It uses the same local `.env`, masked password prompt, and pinned DEV URL.
+Laboratory details are read from the ignored `.env.ahr` file and are only used
+if the DEV account needs the initial setup. To run one AHR scenario, pass its
+exact name:
+
+```bash
+npm run test:local:dev:ahr -- "DEV AHR report file is required"
+```
+
+### Running the TEST journeys
+
+The TEST-only BR and AHR features mirror the scenarios in their DEV feature
+files and are tagged `@test`, so normal feature-suite runs exclude them. The
+BR happy path submits a report to TEST. The AHR happy paths submit reports, and
+the setup helper may update the TEST lab profile if diagnostic tests are not
+configured. Run these commands only when those changes are intended:
+
+```bash
+npm run test:local:test
+npm run test:local:test:ahr
+```
+
+Both runners use
+`https://apha-sdo-system.test.cdp-int.defra.cloud`. Credentials are read from
+`TEST_ENTRA_USERNAME` and `TEST_ENTRA_PASSWORD` in the ignored `.env` file.
+If those are not set, the runner reuses `DEV_ENTRA_USERNAME` and
+`DEV_ENTRA_PASSWORD`; otherwise it prompts for the password without echoing it.
+The username defaults to the DEV test account used by the DEV runner.
+
+The AHR runner also reads `.env.ahr`. Use `TEST_LAB_ADDRESS_LINE_1`,
+`TEST_LAB_ADDRESS_LINE_2`, `TEST_LAB_TOWN`, and `TEST_LAB_POSTCODE` there if
+the TEST account requires first-time laboratory setup. Existing `DEV_LAB_*`
+values are used as fallback. To run one scenario, pass its exact name, for
+example:
+
+```bash
+npm run test:local:test:ahr -- "TEST AHR report file is required"
 ```
 
 ### Debugging local tests

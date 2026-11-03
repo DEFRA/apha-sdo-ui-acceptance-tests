@@ -1,6 +1,10 @@
 .DS_Store
+.env
+.env.ahr
 .npm/
-.vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea
 .server
 node_modules
