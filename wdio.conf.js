@@ -1,5 +1,10 @@
 import fs from 'node:fs'
 
+const cdpEnvironment = process.env.ENVIRONMENT?.toLowerCase()
+const cdpSystemUrl = ['dev', 'test'].includes(cdpEnvironment)
+  ? `https://apha-sdo-system.${cdpEnvironment}.cdp-int.defra.cloud`
+  : undefined
+
 export const config = {
   //
   // ====================
@@ -14,6 +19,7 @@ export const config = {
   // gets prepended directly.
   baseUrl:
     process.env.BASE_URL ||
+    cdpSystemUrl ||
     `https://apha-sdo-frontend.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
 
   // Connection to remote chromedriver
@@ -106,7 +112,11 @@ export const config = {
     strict: false,
     tagExpression:
       process.env.CUCUMBER_TAG_EXPRESSION ||
-      'not @wip and not @dev and not @test',
+      (cdpEnvironment === 'test'
+        ? '@test'
+        : cdpEnvironment === 'dev'
+          ? '@dev'
+          : 'not @wip and not @dev and not @test'),
     timeout: 180000,
     ignoreUndefinedDefinitions: false
   },
