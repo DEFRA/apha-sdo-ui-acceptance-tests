@@ -215,9 +215,24 @@ If you want to use the repository exclusively for running docker composed based 
 
 ## BrowserStack
 
-Two wdio configuration files are provided to help run the tests using BrowserStack in both a GitHub workflow (`wdio.github.browserstack.conf.js`) and from the CDP Portal (`wdio.browserstack.conf.js`).
-They can be run from npm using the `npm run test:browserstack` (for running via portal) and `npm run test:github:browserstack` (from GitHib runner).
-See the CDP Documentation for more details.
+Two WebdriverIO configuration files are provided for BrowserStack:
+`wdio.browserstack.conf.js` for `npm run test:browserstack` and
+`wdio.github.browserstack.conf.js` for `npm run test:github:browserstack`.
+The BrowserStack configuration runs the Cucumber features under
+`test/features` using the step definitions under `test/steps`.
+
+In the CDP Test Suite's Secrets tab, configure `BROWSERSTACK_USERNAME` and
+`BROWSERSTACK_KEY` with your BrowserStack account credentials. To run against
+TEST, select `test` in the Run panel and configure `TEST_ENTRA_USERNAME` and
+`TEST_ENTRA_PASSWORD` with the TEST application account credentials. For DEV,
+use `DEV_ENTRA_USERNAME` and `DEV_ENTRA_PASSWORD`. The environment selection
+chooses the matching APHA SDO system URL and `@test` or `@dev` feature tag.
+These journeys can submit reports or update diagnostic-test settings in the
+selected environment, so run them only when those changes are intended.
+
+Runs are reported to the BrowserStack Test Observability project
+`cdp-node-env-test-suite`. See the CDP documentation for configuring and
+running BrowserStack-enabled test suites.
 
 ## Licence
 
