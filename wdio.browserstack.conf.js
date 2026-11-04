@@ -2,6 +2,28 @@ import fs from 'node:fs'
 import { ProxyAgent, setGlobalDispatcher } from 'undici'
 import { bootstrap } from 'global-agent'
 
+const environment = (process.env.ENVIRONMENT || 'test').toLowerCase()
+const environmentBaseUrls = {
+  dev: 'https://apha-sdo-system.dev.cdp-int.defra.cloud',
+  test: 'https://apha-sdo-system.test.cdp-int.defra.cloud'
+}
+const browserStackUsername =
+  process.env.BROWSERSTACK_USERNAME || process.env.BROWSERSTACK_USER
+const browserStackKey = process.env.BROWSERSTACK_KEY
+const tagExpression =
+  process.env.CUCUMBER_TAG_EXPRESSION ||
+  (environment === 'test'
+    ? '@test'
+    : environment === 'dev'
+      ? '@dev'
+      : 'not @wip and not @dev and not @test')
+
+if (!environmentBaseUrls[environment] && !process.env.BASE_URL) {
+  throw new Error(
+    `Set BASE_URL for the unsupported BrowserStack environment "${environment}"`
+  )
+}
+
 /**
  * Enable webdriver.io to use the outbound proxy.
  * This is required for the test suite to be able to talk to BrowserStack.
@@ -15,8 +37,6 @@ if (process.env.HTTP_PROXY) {
   global.GLOBAL_AGENT.HTTP_PROXY = process.env.HTTP_PROXY
 }
 
-const oneMinute = 60 * 1000
-
 export const config = {
   //
   // ====================
@@ -29,22 +49,22 @@ export const config = {
   // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
   // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
   // gets prepended directly.
-  baseUrl: `https://apha-sdo-ui-acceptance-tests.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`,
+  baseUrl: environmentBaseUrls[environment] || process.env.BASE_URL,
 
   // You will need to provide your own BrowserStack credentials.
   // These should be added as secrets to the test suite.
-  user: process.env.BROWSERSTACK_USERNAME,
-  key: process.env.BROWSERSTACK_KEY,
+  user: browserStackUsername,
+  key: browserStackKey,
 
   // Tests to run
-  specs: ['./test/specs/**/*.js'],
+  specs: ['./test/features/**/*.feature'],
   // Tests to exclude
   exclude: [],
   maxInstances: 1,
 
   commonCapabilities: {
     'bstack:options': {
-      buildName: `apha-sdo-ui-acceptance-tests-${process.env.ENVIRONMENT}` // configure as required
+      buildName: `apha-sdo-ui-acceptance-tests-${environment}`
     }
   },
 
@@ -65,10 +85,10 @@ export const config = {
       {
         testObservability: true, // Disable if you do not want to use the browserstack test observer functionality
         testObservabilityOptions: {
-          user: process.env.BROWSERSTACK_USER,
-          key: process.env.BROWSERSTACK_KEY,
-          projectName: 'cdp-node-env-test-suite', // should match project in browserstack
-          buildName: `apha-sdo-ui-acceptance-tests-${process.env.ENVIRONMENT}`
+          user: browserStackUsername,
+          key: browserStackKey,
+          projectName: 'cdp-node-env-test-suite',
+          buildName: `apha-sdo-ui-acceptance-tests-${environment}`
         },
         acceptInsecureCerts: true,
         forceLocal: false,
@@ -89,10 +109,10 @@ export const config = {
   bail: 0,
   waitforTimeout: 10000,
   waitforInterval: 200,
-  connectionRetryTimeout: 6000,
+  connectionRetryTimeout: 120000,
   connectionRetryCount: 3,
 
-  framework: 'mocha',
+  framework: 'cucumber',
 
   reporters: [
     [
@@ -113,11 +133,19 @@ export const config = {
     ]
   ],
 
-  // Options to be passed to Mocha.
-  // See the full list at http://mochajs.org/
-  mochaOpts: {
-    ui: 'bdd',
-    timeout: oneMinute
+  cucumberOpts: {
+    require: ['./test/steps/*.js'],
+    backtrace: false,
+    requireModule: [],
+    dryRun: false,
+    failFast: false,
+    name: [],
+    snippets: true,
+    source: true,
+    strict: false,
+    tagExpression,
+    timeout: 180000,
+    ignoreUndefinedDefinitions: false
   },
 
   // Hooks
