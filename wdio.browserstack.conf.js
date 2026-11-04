@@ -92,11 +92,7 @@ export const config = {
         },
         acceptInsecureCerts: true,
         forceLocal: false,
-        browserstackLocal: true,
-        opts: {
-          proxyHost: 'localhost',
-          proxyPort: 3128
-        }
+        browserstackLocal: true
       }
     ]
   ],
