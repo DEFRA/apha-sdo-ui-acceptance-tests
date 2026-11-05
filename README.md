@@ -186,6 +186,26 @@ and run scenarios tagged `@test`. Add `TEST_ENTRA_USERNAME` and
 a secret. Credentials in a local `.env` file are not copied into the CDP
 container. Do not commit credentials to the repository.
 
+If AHR needs to complete first-time laboratory setup, CDP secret values for the
+address may not contain spaces. Add each laboratory detail as a separate
+Base64-encoded secret value:
+
+- `TEST_LAB_ADDRESS_LINE_1_BASE64`
+- `TEST_LAB_TOWN_BASE64`
+- `TEST_LAB_POSTCODE_BASE64`
+- `TEST_LAB_ADDRESS_LINE_2_BASE64` (optional)
+
+Encode each original value locally in PowerShell, one at a time, using:
+
+```powershell
+[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((Read-Host "Laboratory detail")))
+```
+
+Paste only the encoded output into that secret's value field. The test decodes
+the value before entering it in the form. Keep these secrets scoped to Test;
+never put the original or encoded values in source control. Local runs continue
+to use plain `TEST_LAB_*` or `DEV_LAB_*` values from `.env.ahr`.
+
 ## Requirements of CDP Environment Tests
 
 1. Your service builds as a docker container using the `.github/workflows/publish.yml`
