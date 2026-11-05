@@ -1,6 +1,35 @@
 import { $, $$, browser, expect } from '@wdio/globals'
 import { Page } from './page.js'
 
+export function getLaboratoryDetail(name) {
+  const environments =
+    process.env.ENVIRONMENT?.toLowerCase() === 'test'
+      ? ['TEST', 'DEV']
+      : ['DEV']
+
+  for (const environment of environments) {
+    const value = process.env[`${environment}_LAB_${name}`]
+    if (value) {
+      return value
+    }
+
+    const encodedValue = process.env[`${environment}_LAB_${name}_BASE64`]
+    if (encodedValue) {
+      const decodedValue = Buffer.from(encodedValue, 'base64').toString('utf8')
+      if (
+        !decodedValue ||
+        Buffer.from(decodedValue, 'utf8').toString('base64') !== encodedValue
+      ) {
+        throw new Error(
+          `The ${environment}_LAB_${name}_BASE64 secret must contain a Base64-encoded UTF-8 value`
+        )
+      }
+
+      return decodedValue
+    }
+  }
+}
+
 class DiagnosticTestsPage extends Page {
   async open_mycoplasma_tests() {
     const mycoplasmaSection = await $(
@@ -48,9 +77,9 @@ class DiagnosticTestsPage extends Page {
     }
 
     const requiredDetails = [
-      ['Address line 1', process.env.DEV_LAB_ADDRESS_LINE_1],
-      ['Town or city', process.env.DEV_LAB_TOWN],
-      ['Postcode', process.env.DEV_LAB_POSTCODE]
+      ['Address line 1', getLaboratoryDetail('ADDRESS_LINE_1')],
+      ['Town or city', getLaboratoryDetail('TOWN')],
+      ['Postcode', getLaboratoryDetail('POSTCODE')]
     ]
     const missingDetails = requiredDetails
       .filter(([, value]) => !value)
@@ -58,13 +87,13 @@ class DiagnosticTestsPage extends Page {
 
     if (missingDetails.length > 0) {
       throw new Error(
-        'Set the laboratory address line 1, town, and postcode in .env.ahr to complete laboratory details'
+        'Set the required laboratory details in .env.ahr for local runs or configure the matching TEST_LAB_*_BASE64 secrets in CDP'
       )
     }
 
     const details = [
       ...requiredDetails,
-      ['Address line 2 (optional)', process.env.DEV_LAB_ADDRESS_LINE_2]
+      ['Address line 2 (optional)', getLaboratoryDetail('ADDRESS_LINE_2')]
     ]
 
     for (const [labelText, value] of details) {
